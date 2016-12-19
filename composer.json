@@ -1,0 +1,24 @@
+{
+    "name": "poirot/sms-clients"
+    , "description": "SMS Abstraction; Implementing Iranian SMS Service Providers; [persian sms, iran sms, magfa]."
+    , "type"       : "library"
+    , "authors": [
+        {
+            "name": "Payam Naderi"
+            , "email": "naderi.payam@gmail.com"
+            , "role": "Developer"
+        }
+    ]
+    , "require": {
+      "poirot/api-client": "dev-devel"
+    }
+    , "target-dir": "Poirot/SmsClients"
+    , "autoload"  : {
+        "psr-0": {
+            "Poirot\\Sms": "."
+        }
+    }
+    ,"repositories": [
+      { "type": "git" ,"url": "https://github.com/phPoirot/SmsClients.git" }
+    ]
+}
