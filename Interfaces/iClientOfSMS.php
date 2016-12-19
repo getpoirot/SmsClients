@@ -12,7 +12,7 @@ interface iClientOfSMS
      * @param array     $recipients  Receivers of message
      * @param iSMessage $message     Message
      *
-     * @return iSMessage Message with uid
+     * @return iSMessage Message with given uid
      * @throws exMessaging
      */
     function sendTo(array $recipients, iSMessage $message);
@@ -43,5 +43,12 @@ interface iClientOfSMS
      * @return int
      */
     function getRemainCredit();
+
+    /**
+     * Get Messaging Line Number
+     *
+     * @return string
+     */
+    function getLineNumber();
 
 }
