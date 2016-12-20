@@ -1,8 +1,8 @@
 <?php
 namespace Poirot\Sms;
 
-
 use Poirot\Sms\Exceptions\exMessaging;
+
 
 interface iClientOfSMS
 {

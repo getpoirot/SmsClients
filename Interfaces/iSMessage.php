@@ -74,9 +74,11 @@ interface iSMessage
     /**
      * Set Message Type To Flash Message
      *
+     * @param bool $bool
+     *
      * @return $this
      */
-    function setFlash();
+    function setFlash($bool = true);
 
     /**
      * Is Flash Message?
