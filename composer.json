@@ -14,7 +14,10 @@
     }
     , "target-dir": "Poirot/SmsClients"
     , "autoload"  : {
-        "psr-0": {
+        "file": [
+          "_functions.php"
+        ]
+        , "psr-0": {
             "Poirot\\Sms": "."
         }
     }

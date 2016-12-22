@@ -1,5 +1,5 @@
 <?php
-namespace Poirot\Sms;
+namespace Poirot\Sms\Interfaces;
 
 use Poirot\Sms\Exceptions\exMessaging;
 
@@ -22,20 +22,9 @@ interface iClientOfSMS
      *
      * @param string $messageUid
      *
-     * @return string
+     * @return array[$recipient_number => iSMessage::STATUS_*]
      */
     function getMessageStatus($messageUid);
-
-    /**
-     * List All Sent Messages
-     *
-     * !! usually providers list messages for current date only
-     *
-     * @param int $limit
-     *
-     * @return  []iSMessage
-     */
-    function listSentMessages($limit);
 
     /**
      * Get Remaining Account Credit
@@ -43,12 +32,4 @@ interface iClientOfSMS
      * @return int
      */
     function getRemainCredit();
-
-    /**
-     * Get Messaging Line Number
-     *
-     * @return string
-     */
-    function getLineNumber();
-
 }

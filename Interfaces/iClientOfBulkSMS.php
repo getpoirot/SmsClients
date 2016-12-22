@@ -1,5 +1,5 @@
 <?php
-namespace Poirot\Sms;
+namespace Poirot\Sms\Interfaces;
 
 
 interface iClientOfBulkSMS

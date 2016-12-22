@@ -1,19 +1,21 @@
 <?php
-namespace Poirot\Sms\Providers\NovinPayamak;
+namespace Poirot\Sms\NovinPayamak\Rest;
 
 use Poirot\ApiClient\Interfaces\iPlatform;
 use Poirot\ApiClient\Interfaces\Request\iApiCommand;
 use Poirot\ApiClient\Interfaces\Response\iResponse;
 use Poirot\ApiClient\Request\Command;
-use Poirot\Std\ConfigurableSetter;
 
 
-class PlatformSoap
-    extends ConfigurableSetter
+class PlatformRest
     implements iPlatform
 {
-    protected $serverUrl = '‫‪http://www.novinpayamak.com/services/SMSBox/wsdl‬‬';
+    /** @var Command */
     protected $Command;
+
+    protected $serverUrl = 'http://novinpayamak.com/rest_sms_boxs';
+
+    protected $conn;
 
 
     /**
@@ -25,7 +27,9 @@ class PlatformSoap
      */
     function withCommand(iApiCommand $command)
     {
-        // TODO: Implement withCommand() method.
+        $self = clone $this;
+        $self->Command = $command;
+        return $self;
     }
 
     /**
@@ -39,11 +43,28 @@ class PlatformSoap
      */
     function send()
     {
-        // TODO: Implement send() method.
+        if (!$command = $this->Command)
+            throw new \Exception('No Command Is Specified.');
+
+
+        // TODO
+
     }
 
-
     // Options
+
+    /**
+     * Set Server Url
+     * @param string $serverUrl
+     * @return $this
+     */
+    function setServerUrl($serverUrl)
+    {
+        $this->conn = null;
+
+        $this->serverUrl = (string) $serverUrl;
+        return $this;
+    }
 
     /**
      * Get Server Url
@@ -54,14 +75,22 @@ class PlatformSoap
         return $this->serverUrl;
     }
 
+
+    // ..
+
     /**
-     * Set Server Url
-     * @param string $serverUrl
-     * @return $this
+     * @return \SoapClient
      */
-    function setServerUrl($serverUrl)
+    protected function _getConnect()
     {
-        $this->serverUrl = (string) $serverUrl;
-        return $this;
+        if ($this->conn)
+            return $this->conn;
+
+        // TODO
+    }
+
+    function __clone()
+    {
+        $this->conn = null;
     }
 }

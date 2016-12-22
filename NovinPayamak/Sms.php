@@ -4,10 +4,12 @@ namespace Poirot\Sms\NovinPayamak;
 use Poirot\ApiClient\aClient;
 use Poirot\ApiClient\Interfaces\iPlatform;
 use Poirot\ApiClient\Request\Command;
+use Poirot\Sms\Exceptions\exMessageMalformed;
 use Poirot\Sms\Exceptions\exMessaging;
-use Poirot\Sms\iClientOfSMS;
-use Poirot\Sms\iSMessage;
-use Poirot\Sms\Providers\NovinPayamak\PlatformSoap;
+use Poirot\Sms\Interfaces\iClientOfSMS;
+use Poirot\Sms\Interfaces\iSMessage;
+use Poirot\Sms\NovinPayamak\Soap\PlatformSoap;
+use Poirot\Sms\SMSMessage;
 
 
 class Sms
@@ -28,16 +30,43 @@ class Sms
      */
     function sendTo(array $recipients, iSMessage $message)
     {
-        // TODO check empty message
+        $body = $message->getBody();
+        if ( empty($body) && !($body === 0 || $body === '0') )
+            throw new exMessageMalformed('Message is Empty.');
 
-        $command = $this->_newCommand('Send',array(
+        # Validate Given Recipients Mobile Number
+        foreach ($recipients as $rMobNum) {
+            if (! \Poirot\Sms\isValidMobileNum($rMobNum))
+                throw new exMessageMalformed(sprintf(
+                    'Invalid Recipient Phone Number for (%s).'
+                    , $rMobNum
+                ));
+        }
+
+        # Make Command
+        $command = $this->_newCommand('Send', array(
             'Recipients' => $recipients,
-            'Message'    => $message->getBody(),
+            'Message'    => array( $message->getBody() ),
             'Flash'      => $message->isFlash(),
-            'DateTime'   => $message->getCreatedDate(),
+            'DateTime'   => $message->getCreatedDate()->format('Y-M-D H:i:s'),
         ));
 
-        return $this->call($command);
+        # Send Through Platform
+        $res = $this->call($command);
+        if ($ex = $res->hasException())
+            throw $ex;
+
+        # Message With Given UID from Server
+        $res = $res->expected();
+        $rMessage = new SMSMessage;
+        $rMessage
+            ->setUID($res->MessageId)
+            ->setBody($message->getBody())
+            ->setFlash($message->isFlash())
+            ->setCoding($message->getCoding())
+        ;
+
+        return $rMessage;
     }
 
     /**
@@ -45,25 +74,38 @@ class Sms
      *
      * @param string $messageUid
      *
-     * @return string
+     * @return array[$recipient_number => iSMessage::STATUS_*]
      */
     function getMessageStatus($messageUid)
     {
-        // TODO: Implement getMessageStatus() method.
-    }
+        # Make Command
+        $command = $this->_newCommand('MessageStatus', array(
+            'MessageId' => (string) $messageUid,
+        ));
 
-    /**
-     * List All Sent Messages
-     *
-     * !! usually providers list messages for current date only
-     *
-     * @param int $limit
-     *
-     * @return  []iSMessage
-     */
-    function listSentMessages($limit)
-    {
-        // TODO: Implement listSentMessages() method.
+        # Send Through Platform
+        $res = $this->call($command);
+        if ($ex = $res->hasException())
+            throw $ex;
+
+        $res = $res->expected();
+        $inf = json_decode($res->Info);
+
+        $return = array();
+        foreach($inf->Recipients as $r) {
+            switch($r->status) {
+                case 0:  $status = iSMessage::STATUS_SENT;      break;
+                case 1:  $status = iSMessage::STATUS_DELIVERED; break;
+                case -1: $status = iSMessage::STATUS_PENDING;   break;
+                case -2: $status = iSMessage::STATUS_FAILED;    break;
+                case -5: $status = iSMessage::STATUS_PENDING;   break;
+                default: $status = iSMessage::STATUS_UNKNOWN;
+            }
+
+            $return[$r->cell] = $status;
+        }
+
+        return $return;
     }
 
     /**
@@ -73,17 +115,16 @@ class Sms
      */
     function getRemainCredit()
     {
-        // TODO: Implement getRemainCredit() method.
-    }
+        # Make Command
+        $command = $this->_newCommand('CheckCredit');
 
-    /**
-     * Get Messaging Line Number
-     *
-     * @return string
-     */
-    function getLineNumber()
-    {
-        // TODO: Implement getLineNumber() method.
+        # Send Through Platform
+        $res = $this->call($command);
+        if ($ex = $res->hasException())
+            throw $ex;
+
+        $res = $res->expected();
+        return $res->Credit;
     }
 
 
@@ -100,6 +141,7 @@ class Sms
     function platform()
     {
         if (!$this->platform)
+            // TODO Detect Best Platform Match
             $this->setPlatform(new PlatformSoap);
 
         return $this->platform;

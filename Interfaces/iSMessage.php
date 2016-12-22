@@ -1,5 +1,5 @@
 <?php
-namespace Poirot\Sms;
+namespace Poirot\Sms\Interfaces;
 
 /**
  * Length of standard Message with Characters include:
@@ -30,6 +30,7 @@ interface iSMessage
     const STATUS_PENDING   = 'stat.pending';
     const STATUS_DELIVERED = 'stat.delivered';
     const STATUS_FAILED    = 'stat.failed';
+    const STATUS_UNKNOWN   = 'stat.unknown';
 
 
     /**

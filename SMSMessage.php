@@ -1,6 +1,7 @@
 <?php
 namespace Poirot\Sms;
 
+use Poirot\Sms\Interfaces\iSMessage;
 use Poirot\Std\ConfigurableSetter;
 
 
@@ -150,7 +151,15 @@ class SMSMessage
      */
     function serialize()
     {
-        // TODO: Implement serialize() method.
+        $values = array(
+            'u' => $this->getUID(),
+            'b' => $this->getBody(),
+            'c' => $this->getCoding(),
+            'f' => $this->isFlash(),
+            'd' => $this->getCreatedDate(),
+        );
+
+        return json_encode($values);
     }
 
     /**
@@ -164,7 +173,17 @@ class SMSMessage
      */
     function unserialize($serialized)
     {
-        // TODO: Implement unserialize() method.
+        $options = json_decode($serialized);
+        $options = \Poirot\Std\toArrayObject($options);
+
+        $date     = $options['d'];
+        $dateTime = new \DateTime($date['date'], new \DateTimeZone($date['timezone']));
+
+        $this->isFlash = $options['f'];
+        $this->coding  = $options['c'];
+        $this->uid     = $options['u'];
+        $this->content = $options['b'];
+        $this->dateTimeCreated = $dateTime;
     }
 
 
