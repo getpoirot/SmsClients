@@ -121,7 +121,22 @@ class Sms
      */
     function getInbox($offset = null, $page = null)
     {
-        // TODO: Implement getInbox() method.
+        # Make Command
+        $conditions = array('Type' => 'All');
+        ($offset === null) ?: $conditions['LastMessageId‬‬'] = $offset;
+        ($page   === null) ?: $conditions['Page‬‬'] = $page;
+        $command = $this->_newCommand('Inbox', array(
+            'Conditions' => json_encode($conditions)
+        ));
+
+        # Send Through Platform
+        $res = $this->call($command);
+        if ($ex = $res->hasException())
+            throw $ex;
+
+        $res = $res->expected();
+        // TODO Generalization
+        return $res->List;
     }
 
     /**
