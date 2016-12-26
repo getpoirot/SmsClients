@@ -1,10 +1,12 @@
 <?php
-namespace Poirot\Sms\NovinPayamak\Soap;
+namespace Poirot\Sms\MelliPayamak\Soap;
 
 use Poirot\ApiClient\Interfaces\iPlatform;
 use Poirot\ApiClient\Interfaces\Request\iApiCommand;
 use Poirot\ApiClient\Interfaces\Response\iResponse;
 use Poirot\ApiClient\Request\Command;
+use Poirot\ApiClient\ResponseOfClient;
+use Poirot\Sms\Exceptions\exServerError;
 use Poirot\Std\ConfigurableSetter;
 
 
@@ -15,7 +17,7 @@ class PlatformSoap
     /** @var Command */
     protected $Command;
 
-    protected $serverUrl = 'http://www.novinpayamak.com/services/SMSBox/wsdl';
+    protected $serverUrl = 'http://api.payamak-panel.com/post/Send.asmx?wsdl';
 
     /** @var \SoapClient */
     protected $conn;
@@ -51,14 +53,23 @@ class PlatformSoap
             throw new \Exception('No Command Is Specified.');
 
 
+        $response  = new ResponseOfClient;
+        $response->setDefaultExpected(function ($originResult, $self) {
+            return $originResult;
+        });
+
+
         $soap      = $this->_getConnect();
-
         $arguments = $command->getArguments();
-        $r         = call_user_func(array($soap, $command->getMethod()), $arguments);
+        try {
+            $r = call_user_func(array($soap, $command->getMethod()), $arguments);
+        } catch (\Exception $e) {
+            return $response->setException(
+                new exServerError('Server was unable to process request.', null, $e)
+            );
+        }
 
-        $response  = new Response;
         $response->setRawResponse($r);
-
         return $response;
     }
 

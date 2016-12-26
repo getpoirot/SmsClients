@@ -7,9 +7,10 @@ use Poirot\ApiClient\Request\Command;
 use Poirot\Sms\Exceptions\exMessageMalformed;
 use Poirot\Sms\Exceptions\exMessaging;
 use Poirot\Sms\Interfaces\iClientOfSMS;
-use Poirot\Sms\Interfaces\iSMessage;
+use Poirot\Sms\Interfaces\iMessage;
+use Poirot\Sms\Interfaces\iSentMessage;
 use Poirot\Sms\NovinPayamak\Soap\PlatformSoap;
-use Poirot\Sms\SMSMessage;
+use Poirot\Sms\SMSentMessage;
 
 
 class Sms
@@ -23,12 +24,12 @@ class Sms
      * Send Message To Recipients
      *
      * @param array $recipients Receivers of message
-     * @param iSMessage $message Message
+     * @param iMessage $message Message
      *
-     * @return iSMessage Message with given uid
+     * @return iSentMessage Message with given uid
      * @throws exMessaging
      */
-    function sendTo(array $recipients, iSMessage $message)
+    function sendTo(array $recipients, iMessage $message)
     {
         $body = $message->getBody();
         if ( empty($body) && !($body === 0 || $body === '0') )
@@ -58,12 +59,13 @@ class Sms
 
         # Message With Given UID from Server
         $res = $res->expected();
-        $rMessage = new SMSMessage;
+        $rMessage = new SMSentMessage;
         $rMessage
             ->setUID($res->MessageId)
             ->setBody($message->getBody())
             ->setFlash($message->isFlash())
             ->setCoding($message->getCoding())
+            ->setRecipients($recipients)
         ;
 
         return $rMessage;
@@ -72,15 +74,15 @@ class Sms
     /**
      * Get Message Delivery Status
      *
-     * @param string $messageUid
+     * @param iSentMessage $message
      *
      * @return array[$recipient_number => iSMessage::STATUS_*]
      */
-    function getMessageStatus($messageUid)
+    function getMessageStatus(iSentMessage $message)
     {
         # Make Command
         $command = $this->_newCommand('MessageStatus', array(
-            'MessageId' => (string) $messageUid,
+            'MessageId' => $message->getUID(),
         ));
 
         # Send Through Platform
@@ -89,17 +91,18 @@ class Sms
             throw $ex;
 
         $res = $res->expected();
+
         $inf = json_decode($res->Info);
 
         $return = array();
         foreach($inf->Recipients as $r) {
             switch($r->status) {
-                case 0:  $status = iSMessage::STATUS_SENT;      break;
-                case 1:  $status = iSMessage::STATUS_DELIVERED; break;
-                case -1: $status = iSMessage::STATUS_PENDING;   break;
-                case -2: $status = iSMessage::STATUS_FAILED;    break;
-                case -5: $status = iSMessage::STATUS_PENDING;   break;
-                default: $status = iSMessage::STATUS_UNKNOWN;
+                case 0:  $status = iMessage::STATUS_SENT;      break;
+                case 1:  $status = iMessage::STATUS_DELIVERED; break;
+                case -1: $status = iMessage::STATUS_PENDING;   break;
+                case -2: $status = iMessage::STATUS_FAILED;    break;
+                case -5: $status = iMessage::STATUS_PENDING;   break;
+                default: $status = iMessage::STATUS_UNKNOWN;
             }
 
             $return[$r->cell] = $status;

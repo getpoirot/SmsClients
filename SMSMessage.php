@@ -1,13 +1,13 @@
 <?php
 namespace Poirot\Sms;
 
-use Poirot\Sms\Interfaces\iSMessage;
+use Poirot\Sms\Interfaces\iMessage;
 use Poirot\Std\ConfigurableSetter;
 
 
 class SMSMessage
     extends ConfigurableSetter
-    implements iSMessage
+    implements iMessage
 {
     protected $isFlash = false;
     protected $coding;
@@ -16,30 +16,43 @@ class SMSMessage
     protected $dateTimeCreated;
 
     protected $_coding_available = array(
-        iSMessage::CODING_ASCII   => true,
-        iSMessage::CODING_BINARY  => true,
-        iSMessage::CODING_DATA8   => true,
-        iSMessage::CODING_UNICODE => true,
+        iMessage::CODING_BINARY  => true,
+        iMessage::CODING_DATA8   => true,
+        iMessage::CODING_ISO     => true,
+        iMessage::CODING_UNICODE => true,
     );
 
+    protected $contentEncode;
+
+
+    /**
+     * Construct
+     *
+     * @param array|\Traversable $options
+     */
+    function __construct($options = null)
+    {
+        $this->dateTimeCreated = new \DateTime;
+        parent::__construct($options);
+    }
 
     /**
      * Set UID
      *
-     * @param string $uid
+     * @param string|array $uid
      *
      * @return $this
      */
     function setUID($uid)
     {
-        $this->uid = (string) $uid;
+        $this->uid = $uid;
         return $this;
     }
 
     /**
      * Get Message Unique ID
      *
-     * @return string
+     * @return string|array
      */
     function getUID()
     {
@@ -57,6 +70,7 @@ class SMSMessage
     function setBody($content)
     {
         $this->content = (string) $content;
+        $this->contentEncode = null;
         return $this;
     }
 
@@ -67,7 +81,21 @@ class SMSMessage
      */
     function getBody()
     {
-        return $this->content;
+        if ($this->contentEncode)
+            return $this->contentEncode;
+
+        $coding = $this->_getPhpEncodingFrom($this->getCoding());
+        $cntCod = $this->_getPhpEncodingFrom($this->_detectEncodingFromContent());
+        switch ($coding) {
+            case 'UTF-8':
+            case 'ISO-8859-1':
+                $this->contentEncode = iconv($cntCod, "{$coding}//TRANSLIT", $this->content);
+                break;
+            default:
+                $this->contentEncode = $this->content;
+        }
+
+        return $this->contentEncode;
     }
 
     /**
@@ -77,9 +105,6 @@ class SMSMessage
      */
     function getCreatedDate()
     {
-        if (!$this->dateTimeCreated)
-            $this->dateTimeCreated = new \DateTime;
-
         return $this->dateTimeCreated;
     }
 
@@ -100,6 +125,7 @@ class SMSMessage
             ));
 
         $this->coding = $coding;
+        $this->contentEncode = null;
         return $this;
     }
 
@@ -141,57 +167,48 @@ class SMSMessage
     }
 
 
-    // Implement Serializable
-
-    /**
-     * String representation of object
-     * @link http://php.net/manual/en/serializable.serialize.php
-     * @return string the string representation of the object or null
-     * @since 5.1.0
-     */
-    function serialize()
-    {
-        $values = array(
-            'u' => $this->getUID(),
-            'b' => $this->getBody(),
-            'c' => $this->getCoding(),
-            'f' => $this->isFlash(),
-            'd' => $this->getCreatedDate(),
-        );
-
-        return json_encode($values);
-    }
-
-    /**
-     * Constructs the object
-     * @link http://php.net/manual/en/serializable.unserialize.php
-     * @param string $serialized <p>
-     * The string representation of the object.
-     * </p>
-     * @return void
-     * @since 5.1.0
-     */
-    function unserialize($serialized)
-    {
-        $options = json_decode($serialized);
-        $options = \Poirot\Std\toArrayObject($options);
-
-        $date     = $options['d'];
-        $dateTime = new \DateTime($date['date'], new \DateTimeZone($date['timezone']));
-
-        $this->isFlash = $options['f'];
-        $this->coding  = $options['c'];
-        $this->uid     = $options['u'];
-        $this->content = $options['b'];
-        $this->dateTimeCreated = $dateTime;
-    }
-
-
     // ...
 
     function _detectEncodingFromContent()
     {
-        // TODO Implement this
-        return iSMessage::CODING_ASCII;
+        $content = $this->content;
+        if (empty($content) && ($content != '0' & $content != 0))
+            return self::CODING_ISO;
+
+        if ($this->_isBinary($content))
+            return self::CODING_BINARY;
+
+        $encoding = 'UTF-8';
+        if (function_exists('mb_detect_encoding'))
+            $encoding = mb_detect_encoding($content, "UTF-8, ISO-8859-1, WINDOWS-1252");
+
+        switch ($encoding) {
+            case 'UTF-8': $encoding = self::CODING_UNICODE;
+                break;
+            case 'ISO-8859-1':
+            case 'WINDOWS-1252': $encoding = self::CODING_ISO;
+                break;
+        }
+
+        return $encoding;
+    }
+
+    function _getPhpEncodingFrom($selfCodingName)
+    {
+        switch ($selfCodingName) {
+            case self::CODING_ISO: $encode = 'ISO-8859-1';
+                break;
+            case self::CODING_UNICODE: $encode = 'UTF-8';
+                break;
+            default:
+                $encode = self::CODING_BINARY;
+        }
+
+        return $encode;
+    }
+
+    function _isBinary($str)
+    {
+        return preg_match('~[^\x20-\x7E\t\r\n]~', $str) > 0;
     }
 }

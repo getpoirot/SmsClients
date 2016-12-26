@@ -12,13 +12,12 @@ namespace Poirot\Sms\Interfaces;
  *   ascii   7 chrs.
  *
  */
-interface iSMessage
-    extends \Serializable
+interface iMessage
 {
     /*
      * ++ Message Coding ++
      */
-    const CODING_ASCII   = 'ASCII';
+    const CODING_ISO     = 'ASCII';
     const CODING_UNICODE = 'UCS2';
     const CODING_DATA8   = 'DATA_8';
     const CODING_BINARY  = 'BINARY';
@@ -31,17 +30,20 @@ interface iSMessage
     const STATUS_DELIVERED = 'stat.delivered';
     const STATUS_FAILED    = 'stat.failed';
     const STATUS_UNKNOWN   = 'stat.unknown';
+    const STATUS_BANNED    = 'stat.banned';
 
 
     /**
      * Get Message Unique ID
      *
-     * @return string
+     * @return string|array
      */
     function getUID();
 
     /**
      * Get Message Body
+     *
+     * !! represent in encoding injected
      *
      * @return string
      */

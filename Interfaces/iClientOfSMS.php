@@ -10,21 +10,21 @@ interface iClientOfSMS
      * Send Message To Recipients
      *
      * @param array     $recipients  Receivers of message
-     * @param iSMessage $message     Message
+     * @param iMessage $message     Message
      *
-     * @return iSMessage Message with given uid
+     * @return iSentMessage Message with given uid
      * @throws exMessaging
      */
-    function sendTo(array $recipients, iSMessage $message);
+    function sendTo(array $recipients, iMessage $message);
 
     /**
      * Get Message Delivery Status
      *
-     * @param string $messageUid
+     * @param iSentMessage $message
      *
      * @return array[$recipient_number => iSMessage::STATUS_*]
      */
-    function getMessageStatus($messageUid);
+    function getMessageStatus(iSentMessage $message);
 
     /**
      * Get Remaining Account Credit

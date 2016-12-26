@@ -3,5 +3,5 @@ namespace Poirot\Sms\Exceptions;
 
 
 class exAuthentication
-    extends \RuntimeException
+    extends exServerBan
 { }
