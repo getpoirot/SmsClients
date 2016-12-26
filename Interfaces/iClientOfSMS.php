@@ -27,6 +27,16 @@ interface iClientOfSMS
     function getMessageStatus(iSentMessage $message);
 
     /**
+     * Get Inbox
+     *
+     * @param int $offset
+     * @param int $page
+     *
+     * @return mixed
+     */
+    function getInbox($offset = null, $page = null);
+
+    /**
      * Get Remaining Account Credit
      *
      * @return int

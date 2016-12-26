@@ -148,6 +148,19 @@ class Sms
     }
 
     /**
+     * Get Inbox
+     *
+     * @param int $offset
+     * @param int $page
+     *
+     * @return mixed
+     */
+    function getInbox($offset = null, $page = null)
+    {
+        // TODO: Implement getInbox() method.
+    }
+
+    /**
      * Get Remaining Account Credit
      *
      * @return int
