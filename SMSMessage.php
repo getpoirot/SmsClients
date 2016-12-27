@@ -103,9 +103,22 @@ class SMSMessage
      *
      * @return \DateTime
      */
-    function getCreatedDate()
+    function getDateCreated()
     {
         return $this->dateTimeCreated;
+    }
+
+    /**
+     * Set Created Date
+     *
+     * @param \DateTime $date
+     *
+     * @return $this
+     */
+    function setDateCreated(\DateTime $date)
+    {
+        $this->dateTimeCreated = $date;
+        return $this;
     }
 
     /**

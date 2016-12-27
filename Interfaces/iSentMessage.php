@@ -21,4 +21,20 @@ interface iSentMessage
      * @return []string
      */
     function getRecipients();
+
+    /**
+     * Set Message Contributor
+     *
+     * @param string $from
+     *
+     * @return $this
+     */
+    function setContributor($from);
+
+    /**
+     * Get Message Contributor
+     *
+     * @return null|string
+     */
+    function getContributor();
 }

@@ -9,6 +9,8 @@ class SMSentMessage
     implements iSentMessage
 {
     protected $recipients = array();
+    /** @var string|null */
+    protected $contributor;
 
 
     /**
@@ -34,6 +36,29 @@ class SMSentMessage
         return $this->recipients;
     }
 
+    /**
+     * Set Message Contributor
+     *
+     * @param string $from
+     *
+     * @return $this
+     */
+    function setContributor($from)
+    {
+        $this->contributor = (string) $from;
+        return $this;
+    }
+
+    /**
+     * Get Message Contributor
+     *
+     * @return null|string
+     */
+    function getContributor()
+    {
+        return $this->contributor;
+    }
+
 
     // Implement Serializable
 
@@ -50,7 +75,7 @@ class SMSentMessage
             'b' => $this->getBody(),
             'c' => $this->getCoding(),
             'f' => $this->isFlash(),
-            'd' => $this->getCreatedDate(),
+            'd' => $this->getDateCreated(),
             'r' => $this->getRecipients(),
         );
 

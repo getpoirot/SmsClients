@@ -49,7 +49,7 @@ class Sms
             'Recipients' => $recipients,
             'Message'    => array( $message->getBody() ),
             'Flash'      => $message->isFlash(),
-            'DateTime'   => $message->getCreatedDate()->format('Y-M-D H:i:s'),
+            'DateTime'   => $message->getDateCreated()->format('Y-M-D H:i:s'),
         ));
 
         # Send Through Platform
@@ -117,12 +117,12 @@ class Sms
      * @param int $offset
      * @param int $page
      *
-     * @return mixed
+     * @return []iSentMessage
      */
     function getInbox($offset = null, $page = null)
     {
         # Make Command
-        $conditions = array('Type' => 'All');
+        $conditions = array('Type' => 'All' /* | New | Count */);
         ($offset === null) ?: $conditions['LastMessageId‬‬'] = $offset;
         ($page   === null) ?: $conditions['Page‬‬'] = $page;
         $command = $this->_newCommand('Inbox', array(
@@ -134,9 +134,24 @@ class Sms
         if ($ex = $res->hasException())
             throw $ex;
 
-        $res = $res->expected();
-        // TODO Generalization
-        return $res->List;
+        $return = array();
+
+        $res  = $res->expected();
+        $list = json_decode($res->List);
+        foreach ($list as $m) {
+            $m = $m->ShortMessage;
+            $message = new SMSentMessage;
+            $message
+                ->setUID($m->id)
+                ->setBody($m->message)
+                ->setDateCreated(new \DateTime($m->created))
+                ->setContributor($m->cellphone)
+            ;
+
+            $return[] = $message;
+        }
+
+        return $return;
     }
 
     /**

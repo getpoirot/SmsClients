@@ -55,7 +55,7 @@ interface iMessage
      *
      * @return \DateTime
      */
-    function getCreatedDate();
+    function getDateCreated();
 
 
     /**
