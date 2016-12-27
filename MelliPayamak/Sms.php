@@ -151,13 +151,67 @@ class Sms
      * Get Inbox
      *
      * @param int $offset
-     * @param int $page
+     * @param int $count
      *
      * @return mixed
      */
-    function getInbox($offset = null, $page = null)
+    function getInbox($offset = null, $count = null)
     {
-        // TODO: Implement getInbox() method.
+        # Make Command
+        $conditions = array('Type' => 'All' /* | New | Count */);
+        ($offset === null) ?: $conditions['LastMessageId‬‬'] = $offset;
+        ($count   === null) ?: $conditions['Page‬‬'] = $count;
+        $command = $this->_newCommand('GetMessages', array(
+            'from'     => $this->lineNumber,
+            'location' => 1, // received messages
+            'index'    => ($offset === null) ? 0   : $offset,
+            'count'    => ($count  === null) ? 100 : $count,
+        ));
+
+        # Send Through Platform
+        $res = $this->call($command);
+        if ($ex = $res->hasException())
+            throw $ex;
+
+        $return = array();
+
+        $res  = $res->expected();
+        $list = $res->getMessagesResult->MessagesBL;
+        foreach ($list as $m) {
+            $message = new SMSentMessage;
+            $message
+                ->setUID($m->MsgID)
+                ->setBody($m->Body)
+                ->setDateCreated(new \DateTime($m->SendDate))
+                ->setContributor($m->Sender)
+                ->setFlash($m->IsFlash)
+            ;
+
+            $return[] = $message;
+        }
+
+        return $return;
+    }
+
+    /**
+     * Count Total Message Inbox
+     *
+     * @return int
+     */
+    function getCountTotalInbox()
+    {
+        # Make Command
+        $command = $this->_newCommand('GetInboxCount', array(
+            'isRead' => false, // false: unread messages
+        ));
+
+        # Send Through Platform
+        $res = $this->call($command);
+        if ($ex = $res->hasException())
+            throw $ex;
+
+        $res = $res->expected();
+        return $res->GetInboxCountResult;
     }
 
     /**

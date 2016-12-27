@@ -115,16 +115,16 @@ class Sms
      * Get Inbox
      *
      * @param int $offset
-     * @param int $page
+     * @param int $count
      *
      * @return []iSentMessage
      */
-    function getInbox($offset = null, $page = null)
+    function getInbox($offset = null, $count = null)
     {
         # Make Command
         $conditions = array('Type' => 'All' /* | New | Count */);
         ($offset === null) ?: $conditions['LastMessageId‬‬'] = $offset;
-        ($page   === null) ?: $conditions['Page‬‬'] = $page;
+        ($count   === null) ?: $conditions['Page‬‬'] = $count;
         $command = $this->_newCommand('Inbox', array(
             'Conditions' => json_encode($conditions)
         ));
@@ -152,6 +152,16 @@ class Sms
         }
 
         return $return;
+    }
+
+    /**
+     * Count Total Message Inbox
+     *
+     * @return int
+     */
+    function getCountTotalInbox()
+    {
+        // TODO Implement this
     }
 
     /**

@@ -17,10 +17,11 @@ class PlatformSoap
     /** @var Command */
     protected $Command;
 
-    protected $serverUrl = 'http://api.payamak-panel.com/post/Send.asmx?wsdl';
+    protected $serverUrlSend = 'http://api.payamak-panel.com/post/send.asmx?wsdl';
+    protected $serverUrlRecv = 'http://api.payamak-panel.com/post/receive.asmx?wsdl';
 
-    /** @var \SoapClient */
-    protected $conn;
+    /** @var []\SoapClient */
+    protected $conn = array();
     protected $soapOptions = array();
 
 
@@ -53,50 +54,23 @@ class PlatformSoap
             throw new \Exception('No Command Is Specified.');
 
 
-        $response  = new ResponseOfClient;
-        $response->setDefaultExpected(function ($originResult, $self) {
-            return $originResult;
-        });
+        $soap = $this->_getConnect(
+            $this->_getServerUrlFromCommand($command)
+        );
 
-
-        $soap      = $this->_getConnect();
-        $arguments = $command->getArguments();
         try {
-            $r = call_user_func(array($soap, $command->getMethod()), $arguments);
+            $r = call_user_func(array($soap, $command->getMethod()), $command->getArguments());
         } catch (\Exception $e) {
-            return $response->setException(
+            return $this->_newResponse()->setException(
                 new exServerError('Server was unable to process request.', null, $e)
             );
         }
 
-        $response->setRawResponse($r);
-        return $response;
+        return $this->_newResponse()->setRawResponse($r);
     }
 
 
     // Options
-
-    /**
-     * Set Server Url
-     * @param string $serverUrl
-     * @return $this
-     */
-    function setServerUrl($serverUrl)
-    {
-        $this->conn = null;
-
-        $this->serverUrl = (string) $serverUrl;
-        return $this;
-    }
-
-    /**
-     * Get Server Url
-     * @return string
-     */
-    function getServerUrl()
-    {
-        return $this->serverUrl;
-    }
 
     /**
      * Set Soap Server Options
@@ -126,25 +100,46 @@ class PlatformSoap
 
     // ..
 
-    /**
-     * @return \SoapClient
-     */
-    protected function _getConnect()
+    /** @return \SoapClient */
+    protected function _getConnect($serverUrl)
     {
-        if ($this->conn)
-            return $this->conn;
+        if (isset($this->conn[$serverUrl]))
+            return $this->conn[$serverUrl];
 
-        $wsdLink = $this->getServerUrl();
+        $wsdLink = $serverUrl;
         if ($soapOptions = $this->getSoapOptions())
             $conn = new \SoapClient($wsdLink, $soapOptions);
         else
             $conn = new \SoapClient($wsdLink);
 
-        return $this->conn  = $conn;
+        return $this->conn[$serverUrl] = $conn;
+    }
+
+    protected function _getServerUrlFromCommand(Command $command)
+    {
+        switch($command->getMethod()) {
+//            case 'GetMessages':
+            case 'GetInboxCount':
+                return $this->serverUrlRecv;
+                break;
+        }
+
+        return $this->serverUrlSend;
+    }
+
+    /** @return ResponseOfClient */
+    protected function _newResponse()
+    {
+        $response = new ResponseOfClient;
+        $response->setDefaultExpected(function ($originResult, $self) {
+            return $originResult;
+        });
+
+        return $response;
     }
 
     function __clone()
     {
-        $this->conn = null;
+        $this->conn = array();
     }
 }

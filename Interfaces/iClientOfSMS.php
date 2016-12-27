@@ -30,11 +30,18 @@ interface iClientOfSMS
      * Get Inbox
      *
      * @param int $offset
-     * @param int $page
+     * @param int $count
      *
      * @return mixed
      */
-    function getInbox($offset = null, $page = null);
+    function getInbox($offset = null, $count = null);
+
+    /**
+     * Count Total Message Inbox
+     *
+     * @return int
+     */
+    function getCountTotalInbox();
 
     /**
      * Get Remaining Account Credit
