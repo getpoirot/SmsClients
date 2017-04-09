@@ -12,13 +12,12 @@
     , "require": {
       "poirot/api-client": "dev-devel"
     }
-    , "target-dir": "Poirot/SmsClients"
     , "autoload"  : {
         "files": [
           "_functions.php"
         ]
-        , "psr-0": {
-            "Poirot\\Sms": "."
+        , "psr-4": {
+            "Poirot\\Sms\\": "src/"
         }
     }
     ,"repositories": [
