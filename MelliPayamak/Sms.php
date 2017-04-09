@@ -182,7 +182,7 @@ class Sms
             $message
                 ->setUID($m->MsgID)
                 ->setBody($m->Body)
-                ->setDateCreated(new \DateTime($m->SendDate))
+                ->setDateTimeCreated(new \DateTime($m->SendDate))
                 ->setContributor($m->Sender)
                 ->setFlash($m->IsFlash)
             ;

@@ -61,12 +61,12 @@ class PlatformSoap
         try {
             $r = call_user_func(array($soap, $command->getMethod()), $command->getArguments());
         } catch (\Exception $e) {
-            return $this->_newResponse()->setException(
+            return $this->_newResponse()->withException(
                 new exServerError('Server was unable to process request.', null, $e)
             );
         }
 
-        return $this->_newResponse()->setRawResponse($r);
+        return $this->_newResponse()->withRawBody($r);
     }
 
 

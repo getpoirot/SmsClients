@@ -75,7 +75,7 @@ class SMSentMessage
             'b' => $this->getBody(),
             'c' => $this->getCoding(),
             'f' => $this->isFlash(),
-            'd' => $this->getDateCreated(),
+            'd' => $this->getDateTimeCreated(),
             'r' => $this->getRecipients(),
         );
 
@@ -93,8 +93,7 @@ class SMSentMessage
      */
     function unserialize($serialized)
     {
-        $options = json_decode($serialized);
-        $options = \Poirot\Std\toArrayObject($options);
+        $options = json_decode($serialized, true);
 
         $date     = $options['d'];
         $dateTime = new \DateTime($date['date'], new \DateTimeZone($date['timezone']));

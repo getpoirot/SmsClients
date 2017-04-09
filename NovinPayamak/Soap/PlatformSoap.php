@@ -57,7 +57,7 @@ class PlatformSoap
         $r         = call_user_func(array($soap, $command->getMethod()), $arguments);
 
         $response  = new Response;
-        $response->setRawResponse($r);
+        $response->withRawBody($r);
 
         return $response;
     }

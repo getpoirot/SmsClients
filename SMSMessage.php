@@ -29,11 +29,18 @@ class SMSMessage
      * Construct
      *
      * @param array|\Traversable $options
+     * @param string             $options Message Body
      */
     function __construct($options = null)
     {
         $this->dateTimeCreated = new \DateTime;
-        parent::__construct($options);
+
+        if (is_string($options))
+            // This is message body
+            $this->setBody($options);
+        else
+            // Options Given
+            parent::__construct($options);
     }
 
     /**
@@ -52,13 +59,13 @@ class SMSMessage
     /**
      * Get Message Unique ID
      *
+     * note: some systems return back multiple ids while
+     *       sent to many receptor
+     *
      * @return string|array
      */
     function getUID()
     {
-        if ($this->uid === null)
-            $this->setUID(bin2hex(random_bytes(8)));
-
         return $this->uid;
     }
 
@@ -103,7 +110,7 @@ class SMSMessage
      *
      * @return \DateTime
      */
-    function getDateCreated()
+    function getDateTimeCreated()
     {
         return $this->dateTimeCreated;
     }
@@ -115,7 +122,7 @@ class SMSMessage
      *
      * @return $this
      */
-    function setDateCreated(\DateTime $date)
+    function setDateTimeCreated(\DateTime $date)
     {
         $this->dateTimeCreated = $date;
         return $this;
@@ -182,7 +189,7 @@ class SMSMessage
 
     // ...
 
-    function _detectEncodingFromContent()
+    protected function _detectEncodingFromContent()
     {
         $content = $this->content;
         if (empty($content) && ($content != '0' & $content != 0))
@@ -206,7 +213,7 @@ class SMSMessage
         return $encoding;
     }
 
-    function _getPhpEncodingFrom($selfCodingName)
+    protected function _getPhpEncodingFrom($selfCodingName)
     {
         switch ($selfCodingName) {
             case self::CODING_ISO: $encode = 'ISO-8859-1';
@@ -220,7 +227,7 @@ class SMSMessage
         return $encode;
     }
 
-    function _isBinary($str)
+    protected function _isBinary($str)
     {
         return preg_match('~[^\x20-\x7E\t\r\n]~', $str) > 0;
     }

@@ -1,5 +1,5 @@
 <?php
-namespace Poirot\Sms\NovinPayamak\Soap;
+namespace Poirot\Sms\KavehNegar\Rest;
 
 use Poirot\ApiClient\ResponseOfClient;
 use Poirot\Sms\Exceptions\exAuthentication;
@@ -11,19 +11,6 @@ use Poirot\Sms\Exceptions\exServerError;
 class Response
     extends ResponseOfClient
 {
-    /**
-     * Response constructor.
-     * @param array|null|\Traversable $options
-     */
-    function __construct($options = null)
-    {
-        $this->defaultExpected = function ($originResult, $self) {
-            return $originResult;
-        };
-
-        parent::__construct($options);
-    }
-
     /**
      * Has Exception?
      *

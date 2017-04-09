@@ -1,5 +1,5 @@
 <?php
-namespace Poirot\Sms\NovinPayamak;
+namespace Poirot\Sms\KavehNegar;
 
 use Poirot\ApiClient\aClient;
 use Poirot\ApiClient\Interfaces\iPlatform;
@@ -9,7 +9,7 @@ use Poirot\Sms\Exceptions\exMessaging;
 use Poirot\Sms\Interfaces\iClientOfSMS;
 use Poirot\Sms\Interfaces\iMessage;
 use Poirot\Sms\Interfaces\iSentMessage;
-use Poirot\Sms\NovinPayamak\Soap\PlatformSoap;
+use Poirot\Sms\KavehNegar\Rest\PlatformRest;
 use Poirot\Sms\SMSentMessage;
 
 
@@ -17,8 +17,8 @@ class Sms
     extends aClient
     implements iClientOfSMS
 {
-    protected $authNumber;
-    protected $authPass;
+    protected $apiKey;
+
 
     /**
      * Send Message To Recipients
@@ -44,12 +44,14 @@ class Sms
                 ));
         }
 
+
         # Make Command
         $command = $this->_newCommand('Send', array(
-            'Recipients' => $recipients,
-            'Message'    => array( $message->getBody() ),
-            'Flash'      => $message->isFlash(),
-            'DateTime'   => $message->getDateTimeCreated()->format('Y-M-D H:i:s'),
+            'receptor' => $recipients,
+            'message'  => $message->getBody(),
+            'type'     => ($message->isFlash()) ? 0 : null,
+            'date'     => $message->getDateTimeCreated()->getTimestamp(),
+            'localid'  => $message->getUID(),
         ));
 
         # Send Through Platform
@@ -80,35 +82,7 @@ class Sms
      */
     function getMessageStatus(iSentMessage $message)
     {
-        # Make Command
-        $command = $this->_newCommand('MessageStatus', array(
-            'MessageId' => $message->getUID(),
-        ));
-
-        # Send Through Platform
-        $res = $this->call($command);
-        if ($ex = $res->hasException())
-            throw $ex;
-
-        $res = $res->expected();
-
-        $inf = json_decode($res->Info);
-
-        $return = array();
-        foreach($inf->Recipients as $r) {
-            switch($r->status) {
-                case 0:  $status = iMessage::STATUS_SENT;      break;
-                case 1:  $status = iMessage::STATUS_DELIVERED; break;
-                case -1: $status = iMessage::STATUS_PENDING;   break;
-                case -2: $status = iMessage::STATUS_FAILED;    break;
-                case -5: $status = iMessage::STATUS_PENDING;   break;
-                default: $status = iMessage::STATUS_UNKNOWN;
-            }
-
-            $return[$r->cell] = $status;
-        }
-
-        return $return;
+        // TODO: Implement getMessageStatus() method.
     }
 
     /**
@@ -117,41 +91,11 @@ class Sms
      * @param int $offset
      * @param int $count
      *
-     * @return []iSentMessage
+     * @return mixed
      */
     function getInbox($offset = null, $count = null)
     {
-        # Make Command
-        $conditions = array('Type' => 'All' /* | New | Count */);
-        ($offset === null) ?: $conditions['LastMessageId‬‬'] = $offset;
-        ($count   === null) ?: $conditions['Page‬‬'] = $count;
-        $command = $this->_newCommand('Inbox', array(
-            'Conditions' => json_encode($conditions)
-        ));
-
-        # Send Through Platform
-        $res = $this->call($command);
-        if ($ex = $res->hasException())
-            throw $ex;
-
-        $return = array();
-
-        $res  = $res->expected();
-        $list = json_decode($res->List);
-        foreach ($list as $m) {
-            $m = $m->ShortMessage;
-            $message = new SMSentMessage;
-            $message
-                ->setUID($m->id)
-                ->setBody($m->message)
-                ->setDateTimeCreated(new \DateTime($m->created))
-                ->setContributor($m->cellphone)
-            ;
-
-            $return[] = $message;
-        }
-
-        return $return;
+        // TODO: Implement getInbox() method.
     }
 
     /**
@@ -161,7 +105,7 @@ class Sms
      */
     function getCountTotalInbox()
     {
-        // TODO Implement this
+        // TODO: Implement getCountTotalInbox() method.
     }
 
     /**
@@ -171,20 +115,11 @@ class Sms
      */
     function getRemainCredit()
     {
-        # Make Command
-        $command = $this->_newCommand('CheckCredit');
-
-        # Send Through Platform
-        $res = $this->call($command);
-        if ($ex = $res->hasException())
-            throw $ex;
-
-        $res = $res->expected();
-        return $res->Credit;
+        // TODO: Implement getRemainCredit() method.
     }
 
 
-    // Implement iClient
+    // ...
 
     /**
      * Get Client Platform
@@ -197,8 +132,7 @@ class Sms
     function platform()
     {
         if (!$this->platform)
-            // TODO Detect Best Platform Match
-            $this->setPlatform(new PlatformSoap);
+            $this->setPlatform(new PlatformRest);
 
         return $this->platform;
     }
@@ -223,29 +157,16 @@ class Sms
      * Set Authorization Number
      * ! used by Auth() command
      *
-     * @param string $number
+     * @param string $apiKey
      *
      * @return $this
      */
-    function setAuthNumber($number)
+    function setApiKey($apiKey)
     {
-        $this->authNumber = (string) $number;
+        $this->apiKey = (string) $apiKey;
         return $this;
     }
 
-    /**
-     * Set Auth Password
-     * ! used by Auth() command
-     *
-     * @param string $pass
-     *
-     * @return $this
-     */
-    function setAuthPass($pass)
-    {
-        $this->authPass = (string) $pass;
-        return $this;
-    }
 
     // ..
 
@@ -256,10 +177,7 @@ class Sms
         ## account data options
         ## these arguments is mandatory on each call
         $defAccParams = array(
-            'Auth'    => array(
-                'number' => $this->authNumber,
-                'pass'   => $this->authPass,
-            ),
+            'apiKey' => $this->apiKey,
         );
         $args = ($args !== null) ? array_merge($defAccParams, $args) : $defAccParams;
         $method->setArguments($args);
