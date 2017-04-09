@@ -14,7 +14,7 @@
     }
     , "autoload"  : {
         "files": [
-          "_functions.php"
+          "src/_functions.php"
         ]
         , "psr-4": {
             "Poirot\\Sms\\": "src/"
