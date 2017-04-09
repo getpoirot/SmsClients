@@ -28,7 +28,7 @@ interface iMessage
      *
      * @return string|array
      */
-    function getUID();
+    function getUid();
 
     /**
      * Get Message Body

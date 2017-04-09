@@ -5,6 +5,7 @@ use Poirot\ApiClient\Exceptions\exHttpResponse;
 use Poirot\ApiClient\ResponseOfClient;
 use Poirot\Sms\Exceptions\exAuthNoCredit;
 use Poirot\Sms\Exceptions\exMessageMalformed;
+use Poirot\Sms\Exceptions\exServerError;
 use Poirot\Sms\Exceptions\exUnknownError;
 use Poirot\Std\Struct\DataEntity;
 
@@ -27,6 +28,9 @@ class Response
             // While Call To Server From Platform Http Response Instead Of 200 Returned.
             // Get Code
             $exceptionCode = $exception->getCode();
+            $exceptionMess = $this->expected();
+            $exceptionMess = $exceptionMess->get('return');
+            $exceptionMess = $exceptionMess['message'];
         }
         else
         {
@@ -53,8 +57,13 @@ class Response
                 break;
             case 418: $return = new exAuthNoCredit('Credit Exudes.');
                 break;
+            case 400: $return = new exServerError('Invalid Some Parameter(s).');
+                break;
+            case 426: $return = new exServerError('Upgrade Service.');
+                break;
 
-            default: $return = new exUnknownError;
+
+            default: $return = new exUnknownError((isset($exceptionMess))?$exceptionMess:'', $exceptionCode);
         }
 
         return $return;

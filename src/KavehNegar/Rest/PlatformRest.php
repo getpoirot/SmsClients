@@ -183,6 +183,15 @@ class PlatformRest
     {
         $cmMethod = strtolower($command->getMethod());
 
+        switch ($cmMethod) {
+            case 'info':
+                $base = 'account';
+                break;
+            case 'lookup':
+                $base = 'verify';
+                break;
+        }
+
         $apiKey   = $command->getArguments();
         $apiKey   = (isset($apiKey['apiKey'])) ? $apiKey['apiKey'] : null;
         if (!$apiKey)

@@ -50,7 +50,7 @@ class SMSMessage
      *
      * @return $this
      */
-    function setUID($uid)
+    function setUid($uid)
     {
         $this->uid = $uid;
         return $this;
@@ -64,7 +64,7 @@ class SMSMessage
      *
      * @return string|array
      */
-    function getUID()
+    function getUid()
     {
         return $this->uid;
     }

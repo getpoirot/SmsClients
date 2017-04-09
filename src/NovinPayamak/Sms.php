@@ -61,7 +61,7 @@ class Sms
         $res = $res->expected();
         $rMessage = new SMSentMessage;
         $rMessage
-            ->setUID($res->MessageId)
+            ->setUid($res->MessageId)
             ->setBody($message->getBody())
             ->setFlash($message->isFlash())
             ->setCoding($message->getCoding())
@@ -82,7 +82,7 @@ class Sms
     {
         # Make Command
         $command = $this->_newCommand('MessageStatus', array(
-            'MessageId' => $message->getUID(),
+            'MessageId' => $message->getUid(),
         ));
 
         # Send Through Platform
@@ -115,16 +115,16 @@ class Sms
      * Get Inbox
      *
      * @param int $offset
-     * @param int $count
+     * @param int $limit
      *
      * @return []iSentMessage
      */
-    function getInbox($offset = null, $count = null)
+    function getInbox($offset = null, $limit = null)
     {
         # Make Command
         $conditions = array('Type' => 'All' /* | New | Count */);
         ($offset === null) ?: $conditions['LastMessageId‬‬'] = $offset;
-        ($count   === null) ?: $conditions['Page‬‬'] = $count;
+        ($limit   === null) ?: $conditions['Page‬‬'] = $limit;
         $command = $this->_newCommand('Inbox', array(
             'Conditions' => json_encode($conditions)
         ));
@@ -142,7 +142,7 @@ class Sms
             $m = $m->ShortMessage;
             $message = new SMSentMessage;
             $message
-                ->setUID($m->id)
+                ->setUid($m->id)
                 ->setBody($m->message)
                 ->setDateTimeCreated(new \DateTime($m->created))
                 ->setContributor($m->cellphone)

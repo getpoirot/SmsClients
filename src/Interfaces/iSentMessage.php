@@ -13,9 +13,10 @@ interface iSentMessage
     const STATUS_PENDING   = 'stat.pending';
     const STATUS_DELIVERED = 'stat.delivered';
     const STATUS_FAILED    = 'stat.failed';
-    const STATUS_UNKNOWN   = 'stat.unknown';
     const STATUS_BANNED    = 'stat.banned';
     const STATUS_NOTSENT   = 'stat.notsent';
+    const STATUS_UNKNOWN   = 'stat.unknown';
+    const STATUS_INVALID   = 'stat.invalid'; // invalid message id or unknown
 
 
     /**

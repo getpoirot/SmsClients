@@ -87,7 +87,7 @@ class Sms
 
         $rMessage = new SMSentMessage;
         $rMessage
-            ->setUID($res)
+            ->setUid($res)
             ->setBody($message->getBody())
             ->setFlash($message->isFlash())
             ->setCoding($message->getCoding())
@@ -107,7 +107,7 @@ class Sms
     function getMessageStatus(iSentMessage $message)
     {
         // Each Recipient has own message ID !!!
-        $mUIDs = $message->getUID();
+        $mUIDs = $message->getUid();
 
         $return = array();
         foreach ($message->getRecipients() as $i => $recipient) {
@@ -151,21 +151,21 @@ class Sms
      * Get Inbox
      *
      * @param int $offset
-     * @param int $count
+     * @param int $limit
      *
      * @return mixed
      */
-    function getInbox($offset = null, $count = null)
+    function getInbox($offset = null, $limit = null)
     {
         # Make Command
         $conditions = array('Type' => 'All' /* | New | Count */);
         ($offset === null) ?: $conditions['LastMessageId‬‬'] = $offset;
-        ($count   === null) ?: $conditions['Page‬‬'] = $count;
+        ($limit   === null) ?: $conditions['Page‬‬'] = $limit;
         $command = $this->_newCommand('GetMessages', array(
             'from'     => $this->lineNumber,
             'location' => 1, // received messages
             'index'    => ($offset === null) ? 0   : $offset,
-            'count'    => ($count  === null) ? 100 : $count,
+            'count'    => ($limit  === null) ? 100 : $limit,
         ));
 
         # Send Through Platform
@@ -180,7 +180,7 @@ class Sms
         foreach ($list as $m) {
             $message = new SMSentMessage;
             $message
-                ->setUID($m->MsgID)
+                ->setUid($m->MsgID)
                 ->setBody($m->Body)
                 ->setDateTimeCreated(new \DateTime($m->SendDate))
                 ->setContributor($m->Sender)

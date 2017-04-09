@@ -13,6 +13,12 @@ use Poirot\Sms\KavehNegar\Rest\PlatformRest;
 use Poirot\Sms\SMSentMessage;
 use Poirot\Std\Struct\DataEntity;
 
+/*
+$sms = new Poirot\Sms\KavehNegar\Sms([
+    'api_key'     => '7136787A396169757A7A6D4D714B44343330336F67773D3D',
+    'sender_line' => '10007770070777'
+]);
+*/
 
 class Sms
     extends aClient
@@ -51,7 +57,7 @@ class Sms
         $command = $this->_newCommand('Send', array(
             'receptor' => implode(', ', $recipients),
             'message'  => $message->getBody(),
-            'localid'  => $message->getUID(),
+            'localid'  => $message->getUid(),
             'type'     => ($message->isFlash()) ? 0 : null,
             'date'     => $message->getDateTimeCreated()->getTimestamp(),
         ));
@@ -70,16 +76,73 @@ class Sms
         foreach ($apiResponse->get('entries') as $entry) {
             $rMessage = new SMSentMessage;
             $rMessage
-                ->setUID($entry['messageid'])
+                ->setUid($entry['messageid'])
                 ->setBody($entry['message'])
                 ->setContributor($entry['sender'])
                 ->setRecipients([$entry['receptor']])
                 ->setStatus($this->_transMessageStatus($entry['status']))
                 ->setFlash($message->isFlash())
                 ->setCoding($message->getCoding())
+                ->setDateTimeCreated(new \DateTime( date("c", $entry['date']) ))
             ;
 
-            $result[$entry['receptor']] = $rMessage;
+            $result[] = $rMessage;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Send Verification Message To Receptor
+     *
+     * @param string $receptor Receiver of message
+     * @param array  $tokens   ['token' => (string), ...]
+     *
+     * @return iSentMessage[] Message(s) with given uid
+     * @throws exMessaging
+     */
+    function sendVerificationTo($receptor, $template, array $tokens)
+    {
+        # Validate Given Recipients Mobile Number
+        if (! \Poirot\Sms\isValidMobileNum($receptor))
+            throw new exMessageMalformed(sprintf(
+                'Invalid Recipient Phone Number for (%s).'
+                , $receptor
+            ));
+
+
+        # Make Command
+        $args = array(
+            'receptor' => $receptor,
+            'template' => $template,
+            'type'     => 'sms',
+        ) + $tokens;
+
+        $command = $this->_newCommand('Lookup', $args);
+
+        # Send Through Platform
+        $apiResponse = $this->call($command);
+        if ($ex = $apiResponse->hasException())
+            throw $ex;
+
+
+        # Message With Given UID from Server
+        /** @var DataEntity $apiResponse */
+        $apiResponse = $apiResponse->expected();
+
+        $result = [];
+        foreach ($apiResponse->get('entries') as $entry) {
+            $rMessage = new SMSentMessage;
+            $rMessage
+                ->setUid($entry['messageid'])
+                ->setBody($entry['message'])
+                ->setContributor($entry['sender'])
+                ->setRecipients([$entry['receptor']])
+                ->setStatus($this->_transMessageStatus($entry['status']))
+                ->setDateTimeCreated(new \DateTime( date("c", $entry['date']) ))
+            ;
+
+            $result[] = $rMessage;
         }
 
         return $result;
@@ -88,26 +151,133 @@ class Sms
     /**
      * Get Message Delivery Status
      *
-     * @param iSentMessage $message
+     * @param iSentMessage[] $messages
      *
-     * @return array[$recipient_number => iSMessage::STATUS_*]
+     * @return array [$messageUid => iSMessage::STATUS_*]
+     * @throws \Exception
      */
-    function getMessageStatus(iSentMessage $message)
+    function getMessageStatus(array $messages)
     {
-        // TODO: Implement getMessageStatus() method.
+        $messageIds = [];
+        foreach ($messages as $m) {
+            if (! $mId = $m->getUid() )
+                throw new \Exception('Message has no Unique Identifier.');
+
+            $messageIds[] = $mId;
+        }
+
+
+
+        # Make Command
+        $command = $this->_newCommand('Status', array(
+            'messageid' => implode(', ', $messageIds),
+        ));
+
+        # Send Through Platform
+        $apiResponse = $this->call($command);
+        if ($ex = $apiResponse->hasException())
+            throw $ex;
+
+
+        # Build Result
+        /** @var DataEntity $apiResponse */
+        $apiResponse = $apiResponse->expected();
+
+        $result = [];
+        foreach ($apiResponse->get('entries') as $entry) {
+            $result[$entry['messageid']] = $this->_transMessageStatus($entry['status']);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Find Sent Message With Given ID
+     *
+     * @param mixed[] $messageIds
+     *
+     * @return iSentMessage[]
+     */
+    function getSentMessageWithId(array $messageIds)
+    {
+        # Make Command
+        $command = $this->_newCommand('Select', array(
+            'messageid' => implode(', ', $messageIds),
+        ));
+
+        # Send Through Platform
+        $apiResponse = $this->call($command);
+        if ($ex = $apiResponse->hasException())
+            throw $ex;
+
+
+        # Build Result
+        /** @var DataEntity $apiResponse */
+        $apiResponse = $apiResponse->expected();
+
+        $result = [];
+        foreach ($apiResponse->get('entries') as $entry) {
+            $rMessage = new SMSentMessage;
+            $rMessage
+                ->setUid($entry['messageid'])
+                ->setBody($entry['message'])
+                ->setContributor($entry['sender'])
+                ->setRecipients([$entry['receptor']])
+                ->setStatus($this->_transMessageStatus($entry['status']))
+                ->setDateTimeCreated(new \DateTime( date("c", $entry['date']) ))
+            ;
+
+            $result[] = $rMessage;
+        }
+
+        return $result;
     }
 
     /**
      * Get Inbox
      *
+     * Max Result is 100, so it can be sent while the
+     * result is equal to 100 to fetch all messages.
+     *
      * @param int $offset
-     * @param int $count
+     * @param int $limit
      *
      * @return mixed
      */
-    function getInbox($offset = null, $count = null)
+    function getInbox($offset = null, $limit = null)
     {
-        // TODO: Implement getInbox() method.
+        # Make Command
+        $command = $this->_newCommand('Receive', array(
+            'linenumber' => $this->sender, // it must be not null
+            'isread'     => 1,
+        ));
+
+        # Send Through Platform
+        $apiResponse = $this->call($command);
+        if ($ex = $apiResponse->hasException())
+            throw $ex;
+
+
+        # Build Result
+        /** @var DataEntity $apiResponse */
+        $apiResponse = $apiResponse->expected();
+
+        $result = [];
+        foreach ($apiResponse->get('entries') as $entry) {
+            $rMessage = new SMSentMessage;
+            $rMessage
+                ->setUid($entry['messageid'])
+                ->setBody($entry['message'])
+                ->setContributor($entry['sender'])
+                ->setRecipients([$entry['receptor']])
+                ->setStatus(iSentMessage::STATUS_DELIVERED)
+                ->setDateTimeCreated(new \DateTime( date("c", $entry['date']) ))
+            ;
+
+            $result[] = $rMessage;
+        }
+
+        return $result;
     }
 
     /**
@@ -117,7 +287,37 @@ class Sms
      */
     function getCountTotalInbox()
     {
-        // TODO: Implement getCountTotalInbox() method.
+        # Make Command
+        $dtNow      = new \DateTime();
+        $beginOfDay = clone $dtNow;
+        $beginOfDay->modify('today');
+        $endOfDay   = clone $beginOfDay;
+        $endOfDay->modify('tomorrow');
+
+
+        $command = $this->_newCommand('CountInbox', array(
+            'startdate'  => $beginOfDay->getTimestamp(),
+            'enddate'    => $endOfDay->getTimestamp(),
+            'linenumber' => $this->sender,
+            'isread'     => 0,
+        ));
+
+        # Send Through Platform
+        $apiResponse = $this->call($command);
+        if ($ex = $apiResponse->hasException())
+            throw $ex;
+
+
+        # Build Result
+        /** @var DataEntity $apiResponse */
+        $apiResponse = $apiResponse->expected();
+
+        $result = 0;
+        foreach ($apiResponse->get('entries') as $entry) {
+            $result += $entry['sumcount'];
+        }
+
+        return $result;
     }
 
     /**
@@ -127,7 +327,20 @@ class Sms
      */
     function getRemainCredit()
     {
-        // TODO: Implement getRemainCredit() method.
+        $command = $this->_newCommand('Info');
+
+        # Send Through Platform
+        $apiResponse = $this->call($command);
+        if ($ex = $apiResponse->hasException())
+            throw $ex;
+
+
+        # Build Result
+        /** @var DataEntity $apiResponse */
+        $apiResponse = $apiResponse->expected();
+
+        $entries = $apiResponse->get('entries');
+        return $entries['remaincredit'];
     }
 
 
@@ -240,7 +453,7 @@ class Sms
             case 14:
                 $return = iSentMessage::STATUS_BANNED; break;
             case 100:
-                $return = iSentMessage::STATUS_FAILED; break;
+                $return = iSentMessage::STATUS_INVALID; break;
         }
 
         return $return;

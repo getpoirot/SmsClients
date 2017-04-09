@@ -23,21 +23,21 @@ interface iClientOfSMS
     /**
      * Get Message Delivery Status
      *
-     * @param iSentMessage $message
+     * @param iSentMessage[] $messages
      *
-     * @return array[$recipient_number => iSMessage::STATUS_*]
+     * @return array[$messageUid => iSMessage::STATUS_*]
      */
-    function getMessageStatus(iSentMessage $message);
+    function getMessageStatus(array $messages);
 
     /**
      * Get Inbox
      *
      * @param int $offset
-     * @param int $count
+     * @param int $limit
      *
      * @return mixed
      */
-    function getInbox($offset = null, $count = null);
+    function getInbox($offset = null, $limit = null);
 
     /**
      * Count Total Message Inbox

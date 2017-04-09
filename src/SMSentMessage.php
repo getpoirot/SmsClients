@@ -97,7 +97,7 @@ class SMSentMessage
     function serialize()
     {
         $values = array(
-            'u' => $this->getUID(),
+            'u' => $this->getUid(),
             'b' => $this->getBody(),
             'c' => $this->getCoding(),
             'f' => $this->isFlash(),
