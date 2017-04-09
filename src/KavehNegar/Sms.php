@@ -11,6 +11,7 @@ use Poirot\Sms\Interfaces\iMessage;
 use Poirot\Sms\Interfaces\iSentMessage;
 use Poirot\Sms\KavehNegar\Rest\PlatformRest;
 use Poirot\Sms\SMSentMessage;
+use Poirot\Std\Struct\DataEntity;
 
 
 class Sms
@@ -18,6 +19,7 @@ class Sms
     implements iClientOfSMS
 {
     protected $apiKey;
+    protected $sender;
 
 
     /**
@@ -26,7 +28,7 @@ class Sms
      * @param array $recipients Receivers of message
      * @param iMessage $message Message
      *
-     * @return iSentMessage Message with given uid
+     * @return iSentMessage[] Message(s) with given uid
      * @throws exMessaging
      */
     function sendTo(array $recipients, iMessage $message)
@@ -47,30 +49,40 @@ class Sms
 
         # Make Command
         $command = $this->_newCommand('Send', array(
-            'receptor' => $recipients,
+            'receptor' => implode(', ', $recipients),
             'message'  => $message->getBody(),
+            'localid'  => $message->getUID(),
             'type'     => ($message->isFlash()) ? 0 : null,
             'date'     => $message->getDateTimeCreated()->getTimestamp(),
-            'localid'  => $message->getUID(),
         ));
 
         # Send Through Platform
-        $res = $this->call($command);
-        if ($ex = $res->hasException())
+        $apiResponse = $this->call($command);
+        if ($ex = $apiResponse->hasException())
             throw $ex;
 
-        # Message With Given UID from Server
-        $res = $res->expected();
-        $rMessage = new SMSentMessage;
-        $rMessage
-            ->setUID($res->MessageId)
-            ->setBody($message->getBody())
-            ->setFlash($message->isFlash())
-            ->setCoding($message->getCoding())
-            ->setRecipients($recipients)
-        ;
 
-        return $rMessage;
+        # Message With Given UID from Server
+        /** @var DataEntity $apiResponse */
+        $apiResponse = $apiResponse->expected();
+
+        $result = [];
+        foreach ($apiResponse->get('entries') as $entry) {
+            $rMessage = new SMSentMessage;
+            $rMessage
+                ->setUID($entry['messageid'])
+                ->setBody($entry['message'])
+                ->setContributor($entry['sender'])
+                ->setRecipients([$entry['receptor']])
+                ->setStatus($this->_transMessageStatus($entry['status']))
+                ->setFlash($message->isFlash())
+                ->setCoding($message->getCoding())
+            ;
+
+            $result[$entry['receptor']] = $rMessage;
+        }
+
+        return $result;
     }
 
     /**
@@ -167,6 +179,21 @@ class Sms
         return $this;
     }
 
+    /**
+     * Set Sender Line Number
+     *
+     * note: if not given default will used
+     *
+     * @param string $lineNumber
+     *
+     * @return $this
+     */
+    function setSenderLine($lineNumber)
+    {
+        $this->sender = (string) $lineNumber;
+        return $this;
+    }
+
 
     // ..
 
@@ -178,9 +205,44 @@ class Sms
         ## these arguments is mandatory on each call
         $defAccParams = array(
             'apiKey' => $this->apiKey,
+            'sender' => $this->sender,
         );
         $args = ($args !== null) ? array_merge($defAccParams, $args) : $defAccParams;
         $method->setArguments($args);
         return $method;
+    }
+
+    /**
+     * Translate Message Status From Given Response To Global Meaningful Const
+     *
+     * @param int $status
+     *
+     * @return null|string
+     */
+    protected function _transMessageStatus($status)
+    {
+        $return = null;
+
+        switch ($status) {
+            case 1:
+            case 2:
+            case 11:
+                $return = iSentMessage::STATUS_PENDING; break;
+            case 4:
+            case 5:
+                $return = iSentMessage::STATUS_SENT; break;
+            case 6:
+                $return = iSentMessage::STATUS_FAILED; break;
+            case 10:
+                $return = iSentMessage::STATUS_DELIVERED; break;
+            case 13:
+                $return = iSentMessage::STATUS_NOTSENT; break;
+            case 14:
+                $return = iSentMessage::STATUS_BANNED; break;
+            case 100:
+                $return = iSentMessage::STATUS_FAILED; break;
+        }
+
+        return $return;
     }
 }

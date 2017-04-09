@@ -18,7 +18,7 @@ class PlatformRest
     protected $Command;
 
     // Options:
-    protected $usingSsl = false;
+    protected $usingSsl  = false;
     protected $serverUrl = 'http://api.kavenegar.com/v1';
 
 
@@ -51,14 +51,20 @@ class PlatformRest
             throw new \Exception('No Command Is Specified.');
 
 
-        kd($command);
+        # Get Connect To Server and Send Data
 
-        # Get Connect To Server
+        $cmArguments = $command->getArguments();
 
+        $data = [];
+        foreach ($cmArguments as $key => $val) {
+            // Filter null values ...
+            if ($val === null) continue;
 
-        # Send Data
+            $data[$key] = $val;
+        }
 
-        # Build Response
+        $response = $this->_sendPostViaCurl($this->_getServerHttpFullUrlFromCommand($command), $data);
+        return $response;
     }
 
 
@@ -165,15 +171,26 @@ class PlatformRest
     /**
      * Determine Server Http Url Using Http or Https?
      *
-     * @param string $command
+     * provide:
+     * http://api.kavenegar.com/v1/7136787A396169757A7A6D4D714B44343330336F67773D3D/sms/send.json
+     *
+     * @param Command $command
      *
      * @return string
      * @throws \Exception
      */
-    protected function _getServerHttpFullUrl($command, $apiKey, $base = 'sms')
+    protected function _getServerHttpFullUrlFromCommand(Command $command, $base = 'sms')
     {
-        $serverUrl = rtrim('/', $this->getServerUrl());
-        $serverUrl.='/'.$apiKey.'/'.$base.'/'.$command.'.json';
+        $cmMethod = strtolower($command->getMethod());
+
+        $apiKey   = $command->getArguments();
+        $apiKey   = (isset($apiKey['apiKey'])) ? $apiKey['apiKey'] : null;
+        if (!$apiKey)
+            throw new \Exception('Command must include Api Key.');
+
+
+        $serverUrl = rtrim($this->getServerUrl(), '/');
+        $serverUrl.='/'.$apiKey.'/'.$base.'/'.$cmMethod.'.json';
 
         return $serverUrl;
     }

@@ -9,10 +9,13 @@ interface iClientOfSMS
     /**
      * Send Message To Recipients
      *
-     * @param array     $recipients  Receivers of message
-     * @param iMessage $message     Message
+     * note: receptor_number can returned as a key for result
+     *       [ $receptor => iSentMessage,  ..]
      *
-     * @return iSentMessage Message with given uid
+     * @param array     $recipients  Receivers of message
+     * @param iMessage  $message     Message
+     *
+     * @return iSentMessage[] Message(s) with given uid
      * @throws exMessaging
      */
     function sendTo(array $recipients, iMessage $message);

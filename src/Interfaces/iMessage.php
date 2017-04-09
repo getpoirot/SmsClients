@@ -22,16 +22,6 @@ interface iMessage
     const CODING_DATA8   = 'DATA_8';
     const CODING_BINARY  = 'BINARY';
 
-    /*
-     * ++ Message Status ++
-     */
-    const STATUS_SENT      = 'stat.sent';
-    const STATUS_PENDING   = 'stat.pending';
-    const STATUS_DELIVERED = 'stat.delivered';
-    const STATUS_FAILED    = 'stat.failed';
-    const STATUS_UNKNOWN   = 'stat.unknown';
-    const STATUS_BANNED    = 'stat.banned';
-
 
     /**
      * Get Message Unique ID

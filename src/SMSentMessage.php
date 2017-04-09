@@ -11,6 +11,7 @@ class SMSentMessage
     protected $recipients = array();
     /** @var string|null */
     protected $contributor;
+    protected $status;
 
 
     /**
@@ -36,6 +37,7 @@ class SMSentMessage
         return $this->recipients;
     }
 
+
     /**
      * Set Message Contributor
      *
@@ -57,6 +59,30 @@ class SMSentMessage
     function getContributor()
     {
         return $this->contributor;
+    }
+
+
+    /**
+     * Set Sent Message Status
+     *
+     * @param string $status
+     *
+     * @return $this
+     */
+    function setStatus($status)
+    {
+        $this->status = $status;
+        return $this;
+    }
+
+    /**
+     * Get Message Status
+     *
+     * @return string
+     */
+    function getStatus()
+    {
+        return $this->status;
     }
 
 
