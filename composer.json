@@ -10,15 +10,16 @@
         }
     ]
     , "require": {
-      "poirot/api-client": "dev-master"
+      "poirot/api-client": "dev-devel"
     }
-    , "target-dir": "Poirot/SmsClients"
     , "autoload"  : {
         "files": [
-          "_functions.php"
+            "src/_functions.php"
+          , "mod/_ioc-facade.php"
         ]
-        , "psr-0": {
-            "Poirot\\Sms": "."
+        , "psr-4": {
+              "Poirot\\Sms\\": "src/"
+            , "Module\\SmsClients\\": "mod/"
         }
     }
     ,"repositories": [
