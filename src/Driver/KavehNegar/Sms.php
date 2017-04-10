@@ -1,5 +1,5 @@
 <?php
-namespace Poirot\Sms\KavehNegar;
+namespace Poirot\Sms\Driver\KavehNegar;
 
 use Poirot\ApiClient\aClient;
 use Poirot\ApiClient\Interfaces\iPlatform;
@@ -9,12 +9,12 @@ use Poirot\Sms\Exceptions\exMessaging;
 use Poirot\Sms\Interfaces\iClientOfSMS;
 use Poirot\Sms\Interfaces\iMessage;
 use Poirot\Sms\Interfaces\iSentMessage;
-use Poirot\Sms\KavehNegar\Rest\PlatformRest;
-use Poirot\Sms\SMSentMessage;
+use Poirot\Sms\Driver\KavehNegar\Rest\PlatformRest;
+use Poirot\Sms\Entity\SMSentMessage;
 use Poirot\Std\Struct\DataEntity;
 
 /*
-$sms = new Poirot\Sms\KavehNegar\Sms([
+$sms = new Poirot\Sms\Driver\KavehNegar\Sms([
     'api_key'     => '7136787A396169757A7A6D4D714B44343330336F67773D3D',
     'sender_line' => '10007770070777'
 ]);

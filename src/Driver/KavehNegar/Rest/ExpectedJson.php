@@ -1,5 +1,5 @@
 <?php
-namespace Poirot\Sms\KavehNegar\Rest;
+namespace Poirot\Sms\Driver\KavehNegar\Rest;
 
 use Poirot\ApiClient\Interfaces\Response\iResponse;
 use Poirot\ApiClient\Response\aExpectedResponse;

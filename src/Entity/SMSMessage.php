@@ -1,5 +1,5 @@
 <?php
-namespace Poirot\Sms;
+namespace Poirot\Sms\Entity;
 
 use Poirot\Sms\Interfaces\iMessage;
 use Poirot\Std\ConfigurableSetter;
