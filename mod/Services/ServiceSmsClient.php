@@ -7,10 +7,28 @@ use Poirot\Sms\Interfaces\iClientOfSMS;
 use Poirot\Std\Struct\DataEntity;
 
 
+/**
+ * Sms Service:
+ *
+ *   \Module\SmsClients\Services\IOC::Sms()->sendTo(...)
+ *
+ *
+ * Replace Sms Service Can be achieved from Configuration file
+ * by registering new instance or service name.
+ *
+ */
 class ServiceSmsClient
     extends aServiceContainer
 {
     const CONF_CLIENT = 'ServiceSmsClient';
+
+    /**
+     * Indicate to allow overriding service
+     * with another service
+     *
+     * @var boolean
+     */
+    protected $allowOverride = false;
 
 
     /**
