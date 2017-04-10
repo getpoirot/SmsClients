@@ -18,6 +18,7 @@
         ]
         , "psr-4": {
             "Poirot\\Sms\\": "src/"
+            , "Module\\SmsClients\\": "mod/"
         }
     }
     ,"repositories": [
