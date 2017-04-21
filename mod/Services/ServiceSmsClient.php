@@ -55,7 +55,7 @@ class ServiceSmsClient
                     , $service
                 ));
 
-            return $this->services()->get($service);
+            $service = $this->services()->get($service);
         }
 
 
