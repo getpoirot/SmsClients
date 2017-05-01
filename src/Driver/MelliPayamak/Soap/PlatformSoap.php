@@ -59,7 +59,7 @@ class PlatformSoap
         );
 
         try {
-            $r = call_user_func(array($soap, $command->getMethod()), $command->getArguments());
+            $r = call_user_func(array($soap, $command->getMethodName()), $command->getArguments());
         } catch (\Exception $e) {
             return $this->_newResponse()->withException(
                 new exServerError('Server was unable to process request.', null, $e)
@@ -117,7 +117,7 @@ class PlatformSoap
 
     protected function _getServerUrlFromCommand(Command $command)
     {
-        switch($command->getMethod()) {
+        switch($command->getMethodName()) {
 //            case 'GetMessages':
             case 'GetInboxCount':
                 return $this->serverUrlRecv;

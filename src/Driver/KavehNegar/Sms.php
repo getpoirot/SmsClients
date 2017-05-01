@@ -413,7 +413,7 @@ class Sms
     protected function _newCommand($methodName, array $args = null)
     {
         $method = new Command;
-        $method->setMethod($methodName);
+        $method->setMethodName($methodName);
         ## account data options
         ## these arguments is mandatory on each call
         $defAccParams = array(

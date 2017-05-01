@@ -54,7 +54,7 @@ class PlatformSoap
         $soap      = $this->_getConnect();
 
         $arguments = $command->getArguments();
-        $r         = call_user_func(array($soap, $command->getMethod()), $arguments);
+        $r         = call_user_func(array($soap, $command->getMethodName()), $arguments);
 
         $response  = new Response;
         $response->withRawBody($r);

@@ -181,7 +181,7 @@ class PlatformRest
      */
     protected function _getServerHttpFullUrlFromCommand(Command $command, $base = 'sms')
     {
-        $cmMethod = strtolower($command->getMethod());
+        $cmMethod = strtolower($command->getMethodName());
 
         switch ($cmMethod) {
             case 'info':
