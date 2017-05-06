@@ -2,6 +2,7 @@
 namespace Poirot\Sms\Driver\KavehNegar\Rest;
 
 use Poirot\ApiClient\Exceptions\exHttpResponse;
+use Poirot\ApiClient\Response\ExpectedJson;
 use Poirot\ApiClient\ResponseOfClient;
 use Poirot\Sms\Exceptions\exAuthNoCredit;
 use Poirot\Sms\Exceptions\exMessageMalformed;

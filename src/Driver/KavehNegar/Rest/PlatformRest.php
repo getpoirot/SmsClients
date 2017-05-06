@@ -161,6 +161,7 @@ class PlatformRest
 
         $response = new Response(
             $cResponse
+            , $cResponseCode
             , ['content_type' => $cContentType]
             , $exception
         );

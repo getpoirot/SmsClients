@@ -3,6 +3,8 @@ namespace Poirot\Sms\Driver\KavehNegar;
 
 use Poirot\ApiClient\aClient;
 use Poirot\ApiClient\Interfaces\iPlatform;
+use Poirot\ApiClient\Interfaces\Request\iApiCommand;
+use Poirot\ApiClient\Interfaces\Response\iResponse;
 use Poirot\ApiClient\Request\Command;
 use Poirot\Sms\Exceptions\exMessageMalformed;
 use Poirot\Sms\Exceptions\exMessaging;
@@ -11,6 +13,7 @@ use Poirot\Sms\Interfaces\iMessage;
 use Poirot\Sms\Interfaces\iSentMessage;
 use Poirot\Sms\Driver\KavehNegar\Rest\PlatformRest;
 use Poirot\Sms\Entity\SMSentMessage;
+use Poirot\Std\ConfigurableSetter;
 use Poirot\Std\Struct\DataEntity;
 
 /*
@@ -21,11 +24,13 @@ $sms = new Poirot\Sms\Driver\KavehNegar\Sms([
 */
 
 class Sms
-    extends aClient
+    extends ConfigurableSetter
     implements iClientOfSMS
 {
     protected $apiKey;
     protected $sender;
+
+    protected $platform;
 
 
     /**
@@ -360,6 +365,32 @@ class Sms
             $this->setPlatform(new PlatformRest);
 
         return $this->platform;
+    }
+
+    /**
+     * Execute Request
+     *
+     * - prepare/validate Transporter with platform
+     * - build expression via method/params with platform
+     * - send expression as request with Transporter
+     *    . build response with platform
+     * - return response
+     *
+     * @param iApiCommand $command Server Exec Method
+     *
+     * @throws \Exception
+     *
+     * throws Exception when $method Object is null
+     *
+     * @return iResponse
+     */
+    protected function call(iApiCommand $command)
+    {
+        $platform = $this->platform();
+        $platform = $platform->withCommand($command);
+        $response = $platform->send();
+
+        return $response;
     }
 
 
