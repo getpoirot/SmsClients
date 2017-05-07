@@ -1,7 +1,6 @@
 <?php
 namespace Poirot\Sms\Driver\KavehNegar;
 
-use Poirot\ApiClient\aClient;
 use Poirot\ApiClient\Interfaces\iPlatform;
 use Poirot\ApiClient\Interfaces\Request\iApiCommand;
 use Poirot\ApiClient\Interfaces\Response\iResponse;
