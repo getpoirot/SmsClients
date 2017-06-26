@@ -15,7 +15,6 @@
     , "autoload"  : {
         "files": [
             "src/_functions.php"
-          , "mod/_ioc-facade.php"
         ]
         , "psr-4": {
               "Poirot\\Sms\\": "src/"
