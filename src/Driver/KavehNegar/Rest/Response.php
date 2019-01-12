@@ -47,6 +47,7 @@ class Response
             }
         }
 
+
         if ($exceptionCode === null)
             return false;
 
@@ -59,6 +60,8 @@ class Response
             case 418: $return = new exAuthNoCredit('Credit Exudes.');
                 break;
             case 400: $return = new exServerError('Invalid Some Parameter(s).');
+                break;
+            case 424: $return = new exServerError('Template Not Confirmed Yet.');
                 break;
             case 426: $return = new exServerError('Upgrade Service.');
                 break;
